@@ -21,12 +21,26 @@ const phonebookData = [
 const express = require('express');
 const app = express();
 
+app.use(express.json());
+
 app.get('/', (request, response) => {
     response.send('<h1>Hello World</h1>');
 });
 
 app.get('/api/phonebook', (request, response) => {
     response.send(phonebookData);
+});
+
+app.get('/api/phonebook/:phoneNumber', (request, response) => {
+    const phoneNumber = request.params.phoneNumber;
+    const phonebookEntry = phonebookData.find(entry => 
+        entry.phoneNumber === phoneNumber
+    );
+    if (phonebookEntry) {
+        response.json(phonebookEntry);
+    } else {
+        response.status(404).end();
+    };
 });
 
 
