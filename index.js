@@ -18,9 +18,13 @@ let phonebookData = [
 ];
 //################################################
 
+
+require('dotenv').config();
 const cors = require('cors');
 const express = require('express');
 const app = express();
+const PhonebookEntry = require('./models/phonebookEntry');
+
 
 const requestLogger = (request, response, next) => {
     console.log('Method: ', request.method);
@@ -32,8 +36,8 @@ const requestLogger = (request, response, next) => {
 
 app.use(cors());
 app.use(express.json());
-app.use(express.static('build'));
 app.use(requestLogger);
+app.use(express.static('build'));
 
 app.get('/api/phonebook', (request, response) => {
     response.send(phonebookData);
@@ -70,9 +74,22 @@ app.delete('/api/phonebook/:phoneNumber', (request, response) => {
 });
 
 
+const unknownEndpoint = (request, response) => {
+    response.status(404).send({ error: 'unknown endpoint' });
+};
+app.use(unknownEndpoint);
+
+const errorHandler = (error, request, response, next) => {
+    console.error(error.message);
+    response.status(400).send({ error: 'malformatted id (phone number)'});
+    next(error);
+};
+app.use(errorHandler);
+
 
 //################## run server ##################
-const PORT = 3001;
+
+const PORT = process.env.PORT;
 
 app.listen(PORT, () => {
     console.log(`Starting server on port ${PORT}...`);
