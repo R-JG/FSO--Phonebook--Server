@@ -42,19 +42,21 @@ app.get('/api/phonebook/:phoneNumber', (request, response) => {
 });
 
 app.post('/api/phonebook', (request, response, next) => {
-    const body = request.body;
-    if (!body.name || !body.phoneNumber) {
-        response.status(400).json({ error: 'missing name or phoneNumber' });
-    } else {
-        const newEntry = new PhonebookEntry({
-            name: body.name,
-            phoneNumber: body.phoneNumber
-        });
-        newEntry
-            .save()
-            .then(savedEntry => response.json(savedEntry))
-            .catch(error => next(error));
+    const { name, phoneNumber } = request.body;
+    if (!name || !phoneNumber) {
+        return response.status(400).json({ error: 'missing name or phoneNumber' });
     };
+    if ((phoneNumber.charAt(3) !== '-') || (phoneNumber.charAt(7) !== '-')) {
+        return response.status(400).json({ error: 'malformatted phonenumber'});
+    };
+    const newEntry = new PhonebookEntry({
+        name,
+        phoneNumber
+    });
+    newEntry
+        .save()
+        .then(savedEntry => response.json(savedEntry))
+        .catch(error => next(error));
 });
 
 app.delete('/api/phonebook/:phoneNumber', (request, response) => {
@@ -79,7 +81,11 @@ app.use(unknownEndpoint);
 
 const errorHandler = (error, request, response, next) => {
     console.error(error.message);
-    response.status(400).send({ error: 'malformatted id (phone number)'});
+    if (error.name === 'CastError') {
+        response.status(400).send({ error: 'malformatted id (phone number)'});
+    } else if (error.name === 'ValidationError') {
+        response.status(400).json({ error: error.message });
+    };
     next(error);
 };
 app.use(errorHandler);

@@ -12,8 +12,17 @@ mongoose
     .catch(error => console.log('error connecting to MongoDB: ', error.message));
 
 const phonebookEntrySchema = new mongoose.Schema({
-    name: String,
-    phoneNumber: String
+    name: { 
+        type: String, 
+        minLength: 1, 
+        required: true 
+    },
+    phoneNumber: { 
+        type: String, 
+        required: true, 
+        minLength: 12,
+        maxLength: 12
+    }
 });
 
 phonebookEntrySchema.set('toJSON', {
